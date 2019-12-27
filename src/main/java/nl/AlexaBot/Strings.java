@@ -12,4 +12,6 @@ public final class Strings {
     public static final String NOT_PLAYING = "Currently not playing.";
     public static final String NOT_IN_CHANNEL = "I haven't joined a voice-channel jet.";
     public static final String API_READY = "API is ready!";
+    public static final String lavaplayerShouldBeUpdated =
+            "Can't play this video because the audio-player is out of date, go nag the creator that he should update it.";
 }
