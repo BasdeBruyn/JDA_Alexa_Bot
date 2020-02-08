@@ -26,8 +26,9 @@ public class LoadResultHandler implements AudioLoadResultHandler {
 
     @Override
     public void trackLoaded(AudioTrack track) {
-        textChannel.sendMessage(ADDING_TO_QUEUE + track.getInfo().title).queue();
         track.setUserData(textChannel);
+
+        textChannel.sendMessage(ADDING_TO_QUEUE + track.getInfo().title).queue();
 
         musicPlayer.play(voiceChannel, track);
     }
@@ -35,8 +36,10 @@ public class LoadResultHandler implements AudioLoadResultHandler {
     @Override
     public void playlistLoaded(AudioPlaylist playlist) {
         AudioTrack audioTrack = playlist.getTracks().get(0);
+        audioTrack.setUserData(textChannel);
 
         textChannel.sendMessage(ADDING_TO_QUEUE + audioTrack.getInfo().title).queue();
+
         if (trackUrl.startsWith(MusicPlayer.YTSEARCH_PREFIX))
             textChannel.sendMessage(audioTrack.getInfo().uri).queue();
 
