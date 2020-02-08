@@ -4,53 +4,52 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import nl.AlexaBot.Strings;
-import nl.AlexaBot.alexa.MessageController;
+import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.entities.VoiceChannel;
 
 public class LoadResultHandler implements AudioLoadResultHandler {
-    private AlexaCommand alexaCommand;
-    private MusicPlayer musicPlayer;
-    private GuildMusicManager musicManager;
+    private static final String ADDING_TO_QUEUE = "Adding to queue ";
+    private static final String NOTHING_FOUND_BY = "Nothing found by ";
+    private static final String COULD_NOT_PLAY = "Could not play: ";
 
-    public LoadResultHandler(AlexaCommand alexaCommand, MusicPlayer musicPlayer, GuildMusicManager musicManager) {
-        this.alexaCommand = alexaCommand;
-        this.musicPlayer = musicPlayer;
-        this.musicManager = musicManager;
+    private String trackUrl;
+    private TextChannel textChannel;
+    private VoiceChannel voiceChannel;
+    private MusicPlayer musicPlayer;
+
+    public LoadResultHandler(String trackUrl, TextChannel textChannel, VoiceChannel voiceChannel) {
+        this.trackUrl = trackUrl;
+        this.textChannel = textChannel;
+        this.voiceChannel = voiceChannel;
+        this.musicPlayer = MusicPlayer.getInstance();
     }
 
     @Override
     public void trackLoaded(AudioTrack track) {
-        MessageController.sendMessage(
-                alexaCommand,
-                Strings.TRACK_LOADED + track.getInfo().title);
+        textChannel.sendMessage(ADDING_TO_QUEUE + track.getInfo().title).queue();
+        track.setUserData(textChannel);
 
-        musicPlayer.play(alexaCommand, musicManager, track);
+        musicPlayer.play(voiceChannel, track);
     }
 
     @Override
     public void playlistLoaded(AudioPlaylist playlist) {
         AudioTrack audioTrack = playlist.getTracks().get(0);
 
-        MessageController.sendMessage(
-                alexaCommand,
-                Strings.TRACK_LOADED + audioTrack.getInfo().title);
-        if (alexaCommand.getTrackUrl().startsWith(Strings.YT_SEARCH_SELECTOR))
-            MessageController.sendMessage(alexaCommand, audioTrack.getInfo().uri);
+        textChannel.sendMessage(ADDING_TO_QUEUE + audioTrack.getInfo().title).queue();
+        if (trackUrl.startsWith(MusicPlayer.YTSEARCH_PREFIX))
+            textChannel.sendMessage(audioTrack.getInfo().uri).queue();
 
-        musicPlayer.play(alexaCommand, musicManager, audioTrack);
+        musicPlayer.play(voiceChannel, audioTrack);
     }
 
     @Override
     public void noMatches() {
-        MessageController.sendMessage(
-                alexaCommand,
-                Strings.NO_MATCHES + alexaCommand.getTrackUrl());
+        textChannel.sendMessage(NOTHING_FOUND_BY + trackUrl).queue();
     }
 
     @Override
     public void loadFailed(FriendlyException exception) {
-        MessageController.sendMessage(
-                alexaCommand,
-                Strings.LOAD_FAILED + exception.getMessage());
+        textChannel.sendMessage(COULD_NOT_PLAY + exception.getMessage()).queue();
     }
 }

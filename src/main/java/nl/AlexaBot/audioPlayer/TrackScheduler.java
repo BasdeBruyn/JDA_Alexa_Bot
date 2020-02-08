@@ -7,20 +7,20 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
-import nl.AlexaBot.alexa.MessageController;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import static nl.AlexaBot.Strings.lavaplayerShouldBeUpdated;
 
 /**
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
 public class TrackScheduler extends AudioEventAdapter {
+    private static final String LAVAPLAYER_OUTDATED =
+            "Can't play this video because the audio-player is out of date, I will restart to update the youtube player. " +
+            "If this doesn't resolve the issue go nag the creator to fix it manually.";
     private final AudioPlayer player;
     private final Guild guild;
-    public final BlockingQueue<AudioTrack> queue;
+    private final BlockingQueue<AudioTrack> queue;
 
     /**
      * @param player The audio player this scheduler uses
@@ -59,14 +59,20 @@ public class TrackScheduler extends AudioEventAdapter {
         // Only start the next track if the end reason is suitable for it (FINISHED or LOAD_FAILED)
         if (endReason.mayStartNext && !nextTrack())
                 guild.getAudioManager().closeAudioConnection();
-
-
     }
 
     @Override
     public void onTrackException(AudioPlayer player, AudioTrack track, FriendlyException exception) {
-        AlexaCommand alexaCommand = (AlexaCommand) track.getUserData();
-        MessageController.sendMessage(alexaCommand, lavaplayerShouldBeUpdated);
-        guild.getAudioManager().closeAudioConnection();
+        TextChannel textChannel = (TextChannel) track.getUserData();
+        textChannel
+                .sendMessage(LAVAPLAYER_OUTDATED)
+                .queue(message -> {
+                    guild.getAudioManager().closeAudioConnection();
+                    System.exit(0);
+                });
+    }
+
+    public void clearQueue() {
+        queue.clear();
     }
 }
