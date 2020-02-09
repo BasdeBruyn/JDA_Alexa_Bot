@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  alexa_bot:
+    build: ..
+    image: alexa_bot
+    restart: always
+#    command: "NDM1NDAyMTgwODc5NDUwMTEy.XgaAzA.gthbC6LLjiFqSyNceMeRwDWEvTo" #bot key
+    command: "NDM0NjM5NTM3ODk3OTk2Mjg5.Xj6Pjw.KWRZMWeRV-RJw1v6aoQLDrJE_Bk" #bot key

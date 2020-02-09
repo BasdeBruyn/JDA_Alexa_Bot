@@ -18,6 +18,7 @@ public class Main {
             throw new RuntimeException(NO_BOT_TOKEN_GIVEN);
 
         String token = args[0];
+        logger.info("token provided: " + token);
 
         try {
             new JDABuilder(token)
